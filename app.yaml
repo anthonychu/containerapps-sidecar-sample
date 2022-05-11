@@ -1,0 +1,36 @@
+properties:
+  managedEnvironmentId: /subscriptions/<subscription_id>/resourceGroups/<rg_name>/providers/Microsoft.App/managedEnvironments/<env_name>
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      allowInsecure: false
+      targetPort: 3000
+      traffic:
+        - latestRevision: true
+          weight: 100
+      transport: Auto
+  template:
+    containers:
+      - image: albums.azurecr.io/aca-multicontainer-app:1.0
+        name: main
+        volumeMounts:
+          - mountPath: /files
+            volumeName: files
+        env:
+          - name: WRITE_PATH
+            value: /files
+      - image: albums.azurecr.io/aca-multicontainer-sidecar:1.0
+        name: sidecar
+        volumeMounts:
+          - mountPath: /files
+            volumeName: files
+        env:
+          - name: WATCH_FOLDER
+            value: /files
+    scale:
+      minReplicas: 0
+      maxReplicas: 1
+    volumes:
+      - name: files
+        storageType: EmptyDir
